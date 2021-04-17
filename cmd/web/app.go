@@ -6,13 +6,14 @@ import (
 	"time"
 )
 
-func home(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Hello from Snippetbox"))
-}
-
 func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", home)
+	mux.HandleFunc("/snippet", showSnippet)
+	mux.HandleFunc("/snippet/create", createSnippet)
+
+	fileServer := http.FileServer(http.Dir("../../ui/static/"))
+	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
 	server := http.Server{
 		Addr:         ":4000",
