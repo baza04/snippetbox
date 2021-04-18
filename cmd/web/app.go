@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -25,6 +26,9 @@ func main() {
 	fileServer := http.FileServer(http.Dir(conf.staticDir))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
+	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
 	server := http.Server{
 		Addr:         conf.addr,
 		Handler:      mux,
@@ -32,6 +36,6 @@ func main() {
 		WriteTimeout: time.Second * 10,
 	}
 
-	log.Printf("Listening port%s\n", server.Addr)
-	log.Fatal(server.ListenAndServe())
+	infoLog.Printf("Listening port%s\n", server.Addr)
+	errorLog.Fatal(server.ListenAndServe())
 }
