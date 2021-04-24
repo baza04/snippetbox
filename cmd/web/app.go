@@ -26,12 +26,19 @@ func main() {
 	fileServer := http.FileServer(http.Dir(conf.staticDir))
 	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
 
-	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	f, err := os.OpenFile("/tmp/info.log", os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+
+	infoLog := log.New(f, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	server := http.Server{
 		Addr:         conf.addr,
 		Handler:      mux,
+		ErrorLog:     errorLog,
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 10,
 	}
