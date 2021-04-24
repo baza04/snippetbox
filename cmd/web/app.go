@@ -29,23 +29,9 @@ func main() {
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 	app := application{infoLog, errorLog}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.home)
-	mux.HandleFunc("/snippet", app.showSnippet)
-	mux.HandleFunc("/snippet/create", app.createSnippet)
-
-	fileServer := http.FileServer(http.Dir(conf.staticDir))
-	mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-
-	// f, err := os.OpenFile("../../info.log", os.O_RDWR|os.O_CREATE, 0666)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer f.Close()
-
 	server := &http.Server{
 		Addr:         conf.addr,
-		Handler:      mux,
+		Handler:      app.routes(conf.staticDir),
 		ErrorLog:     errorLog,
 		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 10,
