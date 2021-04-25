@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/baza04/snippetbox/pkg/models/mysql"
 )
 
 type config struct {
@@ -18,6 +20,7 @@ type config struct {
 type application struct {
 	infoLog  *log.Logger
 	errorLog *log.Logger
+	snippets *mysql.SnippetModel
 }
 
 func main() {
@@ -30,8 +33,14 @@ func main() {
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stderr, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
-	app := application{infoLog, errorLog}
 
+	db, err := openDB(*&conf.dbSource)
+	if err != nil {
+		errorLog.Fatal(err)
+	}
+	defer db.Close()
+
+	app := application{infoLog, errorLog, &mysql.SnippetModel{DB: db}}
 	server := &http.Server{
 		Addr:         conf.addr,
 		Handler:      app.routes(conf.staticDir),
